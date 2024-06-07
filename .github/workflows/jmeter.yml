@@ -44,7 +44,9 @@ jobs:
 
         results=$(parse_jtl_file "$jtl_content")
         echo "$results" > results.txt
-        echo "results=$(cat results.txt | tr '\n' ' ')" >> $GITHUB_ENV
+
+        # Set results as an environment variable
+        echo "::set-env name=RESULTS::$results"
 
         results_array=(${results// / })
         failed_transactions=()
@@ -95,9 +97,6 @@ jobs:
         echo "EMAIL_TABLE=$(cat email_table.txt)" >> $GITHUB_ENV
         echo "EMAIL_SUMMARY=$(cat email_summary.txt)" >> $GITHUB_ENV
 
-    - name: Set results environment variable
-      run: echo "results=$(cat results.txt | tr '\n' ' ')" >> $GITHUB_ENV
-
     - name: Send email with results
       uses: dawidd6/action-send-mail@v3
       with:
@@ -111,7 +110,7 @@ jobs:
           ${{ env.EMAIL_TABLE }}
           <p style="font-family: Calibri, sans-serif;"><b>Build Information:</b></p>
           <ul style="font-family: Calibri, sans-serif;">
-              <li>Build Health Status: ${{ env.TEST_RESULTS }}</li>
+              <li>Build Health Status: ${{ env.RESULTS }}</li>
               <li>Build Date and Time: $(date +"%Y-%m-%d & %I:%M %p, %Z" -d "TZ=\"Africa/Lagos\"")</li>
           </ul>
           <p style="font-family: Calibri, sans-serif;"><b>Summary:</b></p>
