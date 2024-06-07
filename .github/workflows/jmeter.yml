@@ -57,15 +57,16 @@ jobs:
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "Nelfund Real User Monitoring Health"
         body: |
-          <p>Please find the details of Application responsiveness :</p>
+          Please find the details of Application responsiveness :
           ${{ steps.generate-report.outputs.table }}
-          <p><b>Build Information:</b></p>
-          <p>Build Health Status: Successful!</p>
-          <p>Build Date and Time: $(date +"%Y-%m-%d & %I:%M %p, %Z")</p>
-          <p><b>Summary:</b></p>
-          <p>All transactions met the response time SLA of 5 seconds, indicating optimal performance.</p>
-          <p>Thanks,<br>QA Team.</p>
-          <p>Note: This is an auto-generated email. Do not reply.</p>
+          Build Information:
+          Build Health Status: Successful!
+          Build Date and Time:
+          Summary:
+          All transactions met the response time SLA of 5 seconds, indicating optimal performance.
+          Thanks,
+          QA Team.
+          Note: This is an auto-generated email. Do not reply.
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
         attachments: SLASresults.jtl
