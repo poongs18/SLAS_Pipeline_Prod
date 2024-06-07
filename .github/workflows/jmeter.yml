@@ -45,8 +45,7 @@ jobs:
         results=$(parse_jtl_file "$jtl_content")
         echo "$results" > results.txt
 
-        # Set results as an environment variable
-        echo "::set-env name=RESULTS::$results"
+        echo "::set-output name=results::$results"
 
         results_array=(${results// / })
         failed_transactions=()
@@ -88,14 +87,11 @@ jobs:
                     </table>
                     <br>"
 
-        # Write the email table to a file
         printf "%s" "$email_table" > email_table.txt
-        # Write the summary to a file
         printf "%s" "$summary" > email_summary.txt
 
-        # Use the GITHUB_ENV file to set environment variables
-        echo "EMAIL_TABLE=$(cat email_table.txt)" >> $GITHUB_ENV
-        echo "EMAIL_SUMMARY=$(cat email_summary.txt)" >> $GITHUB_ENV
+        echo "::set-output name=email_table::$(cat email_table.txt)"
+        echo "::set-output name=email_summary::$(cat email_summary.txt)"
 
     - name: Send email with results
       uses: dawidd6/action-send-mail@v3
@@ -107,14 +103,14 @@ jobs:
         subject: "JMeter Test Results"
         body: |
           <p style="font-family: Calibri, sans-serif;">Please find the details of Application responsiveness :</p>
-          ${{ env.EMAIL_TABLE }}
+          ${{ steps.generate-report.outputs.email_table }}
           <p style="font-family: Calibri, sans-serif;"><b>Build Information:</b></p>
           <ul style="font-family: Calibri, sans-serif;">
-              <li>Build Health Status: ${{ env.RESULTS }}</li>
+              <li>Build Health Status: ${{ steps.generate-report.outputs.results }}</li>
               <li>Build Date and Time: $(date +"%Y-%m-%d & %I:%M %p, %Z" -d "TZ=\"Africa/Lagos\"")</li>
           </ul>
           <p style="font-family: Calibri, sans-serif;"><b>Summary:</b></p>
-          <p style="font-family: Calibri, sans-serif;">${{ env.EMAIL_SUMMARY }}</p>
+          <p style="font-family: Calibri, sans-serif;">${{ steps.generate-report.outputs.email_summary }}</p>
           <p style="font-family: Calibri, sans-serif;">Thanks,<br>QA Team.</p>
           <p style="font-family: Calibri, sans-serif;">Note: This is an auto-generated email. Do not reply.</p>
         to: deepak@thinktime.in
