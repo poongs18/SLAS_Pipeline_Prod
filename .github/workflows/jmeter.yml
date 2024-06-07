@@ -83,6 +83,7 @@ jobs:
               <p>${{ env.parsed_results }}</p>
             </div>
             <div style='clear: both;'></div> <!-- Clear float -->
+            <p></p> <!-- Add space between table and build information -->
             
             <p><b>Build Information:</b></p>
             <p>Build Health Status: ${{ env.overall_status }}!<br>
