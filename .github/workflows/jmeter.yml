@@ -21,6 +21,74 @@ jobs:
           justb4/jmeter \
           -n -t SLAS_Pipeline_prod.jmx -l SLASresults.jtl
 
+    - name: Generate Report
+      id: generate-report
+      run: |
+        jtl_content=$(cat SLASresults.jtl)
+
+        parse_jtl_file() {
+            IFS=$'\n' read -d '' -r -a lines <<< "$1"
+            results=()
+            for line in "${lines[@]}"; do
+                IFS=',' read -r -a parts <<< "$line"
+                label="${parts[2]}"
+                elapsed=$(echo "scale=2; ${parts[1]}/1000" | bc)
+                status="Pass"
+                if (( $(echo "$elapsed > 5.0" | bc -l) )); then
+                    status="Fail(Response Time SLA breached)"
+                fi
+                results+=("$label-$elapsed sec - $status")
+            done
+            printf "%s\n" "${results[@]}"
+        }
+
+        results=$(parse_jtl_file "$jtl_content")
+        echo "$results" > results.txt
+        echo "::set-output name=results::$(cat results.txt | tr '\n' ' ')"
+
+        results_array=(${results// / })
+        failed_transactions=()
+        for result in "${results_array[@]}"; do
+            if [[ "$result" == *"Fail"* ]]; then
+                failed_transactions+=("$result")
+            fi
+        done
+
+        if [ ${#failed_transactions[@]} -eq 0 ]; then
+            summary="All transactions met the response time SLA of 5 seconds, indicating optimal performance."
+        else
+            failed_labels=$(printf ", %s" "${failed_transactions[@]}")
+            failed_labels=${failed_labels:2}
+            summary="Please note that the following transactions failed to meet the performance criteria with a response time of 5 seconds: $failed_labels. Immediate action is required to address the performance issues identified."
+        fi
+
+        table_rows=""
+        for result in "${results_array[@]}"; do
+            IFS='-' read -r label elapsed status <<< "$result"
+            status_color="green"
+            if [[ "$status" == *"Fail"* ]]; then
+                status_color="red"
+            fi
+            table_rows+="<tr><td style=\"border: 1px solid black; text-align: left;\">$label</td><td style=\"border: 1px solid black;\">$elapsed sec</td><td style=\"border: 1px solid black; color: $status_color;\">$status</td></tr>"
+        done
+
+        email_table="<table style=\"text-align: left; border-collapse: collapse; border: 1px solid black; font-family: Calibri, sans-serif;\">
+                        <thead>
+                            <tr style=\"background-color: yellow; text-align: center;\">
+                                <th style=\"border: 1px solid black;\">PageName</th>
+                                <th style=\"border: 1px solid black;\">Response Time</th>
+                                <th style=\"border: 1px solid black;\">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            $table_rows
+                        </tbody>
+                    </table>
+                    <br>"
+
+        echo "::set-env name=EMAIL_TABLE::$email_table"
+        echo "::set-env name=EMAIL_SUMMARY::$summary"
+
     - name: Send email with results
       uses: dawidd6/action-send-mail@v3
       with:
@@ -29,7 +97,18 @@ jobs:
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "JMeter Test Results"
-        body: "Find the JMeter test results attached."
+        body: |
+          <p style="font-family: Calibri, sans-serif;">Please find the details of Application responsiveness :</p>
+          ${{ env.EMAIL_TABLE }}
+          <p style="font-family: Calibri, sans-serif;"><b>Build Information:</b></p>
+          <ul style="font-family: Calibri, sans-serif;">
+              <li>Build Health Status: ${{ steps.generate-report.outputs.results }}</li>
+              <li>Build Date and Time: $(date +"%Y-%m-%d & %I:%M %p, %Z" -d "TZ=\"Africa/Lagos\"")</li>
+          </ul>
+          <p style="font-family: Calibri, sans-serif;"><b>Summary:</b></p>
+          <p style="font-family: Calibri, sans-serif;">${{ env.EMAIL_SUMMARY }}</p>
+          <p style="font-family: Calibri, sans-serif;">Thanks,<br>QA Team.</p>
+          <p style="font-family: Calibri, sans-serif;">Note: This is an auto-generated email. Do not reply.</p>
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
         attachments: SLASresults.jtl
