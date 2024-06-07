@@ -35,7 +35,6 @@ jobs:
       run: |
         parsed_results="PageName\tResponse Time\tStatus\n"
         overall_status="Successful"
-        failed_labels=""
         while IFS=, read -r timeStamp elapsed label responseCode responseMessage threadName dataType success failureMessage bytes sentBytes grpThreads allThreads URL Latency IdleTime Connect; do
           if [ "$label" != "label" ]; then
             if [ $elapsed -le 5000 ]; then
@@ -43,17 +42,13 @@ jobs:
             else
               result="Fail"
               overall_status="Failure"
-              failed_labels="$failed_labels$label, "
             fi
             response_time=$(bc <<< "scale=2; $elapsed / 1000")
             parsed_results="$parsed_results$label\t$response_time sec\t$result\n"
           fi
         done < SLASresults.jtl
-        # Remove trailing comma from failed_labels
-        failed_labels="${failed_labels%,*}"
         echo "parsed_results=$parsed_results" >> $GITHUB_ENV
         echo "overall_status=$overall_status" >> $GITHUB_ENV
-        echo "failed_labels=$failed_labels" >> $GITHUB_ENV
 
     - name: Send email with parsed results
       uses: dawidd6/action-send-mail@v3
@@ -75,7 +70,7 @@ jobs:
           
           Summary:
 
-          ${{ if eq(env.overall_status, 'Successful') }}All transactions met the response time SLA of 5 seconds, indicating optimal performance.${{ else }}Please note that the following transactions failed to meet the performance criteria with a response time of 5 seconds: ${{ env.failed_labels }}. Immediate action is required to address the performance issues identified.${{ endif }}
+          
 
           Thanks,
           QA Team.
