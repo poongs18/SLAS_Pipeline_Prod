@@ -86,8 +86,14 @@ jobs:
                     </table>
                     <br>"
 
-        echo "EMAIL_TABLE=$email_table" >> $GITHUB_ENV
-        echo "EMAIL_SUMMARY=$summary" >> $GITHUB_ENV
+        # Write the email table to a file
+        printf "%s" "$email_table" > email_table.txt
+        # Write the summary to a file
+        printf "%s" "$summary" > email_summary.txt
+
+        # Use the GITHUB_ENV file to set environment variables
+        echo "EMAIL_TABLE=$(cat email_table.txt)" >> $GITHUB_ENV
+        echo "EMAIL_SUMMARY=$(cat email_summary.txt)" >> $GITHUB_ENV
 
     - name: Send email with results
       uses: dawidd6/action-send-mail@v3
