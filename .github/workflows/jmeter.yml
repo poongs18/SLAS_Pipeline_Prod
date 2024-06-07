@@ -92,4 +92,7 @@ jobs:
 
             <p>Note: This is an auto-generated email. Do not reply</p>
           </body>
-          </
+          </html>
+        to: deepak@thinktime.in
+        from: ${{ secrets.EMAIL_USERNAME }}
+        priority: normal
