@@ -33,7 +33,7 @@ jobs:
     - name: Parse JTL file and prepare email content
       id: parse-results
       run: |
-        parsed_results="PageName\tResponse Time\tStatus\n"
+        parsed_results="<table><tr><th>PageName</th><th>Response Time</th><th>Status</th></tr>"
         overall_status="Successful"
         failed_labels=""
         while IFS=, read -r timeStamp elapsed label responseCode responseMessage threadName dataType success failureMessage bytes sentBytes grpThreads allThreads URL Latency IdleTime Connect; do
@@ -46,11 +46,12 @@ jobs:
               failed_labels="$failed_labels$label, "
             fi
             response_time=$(bc <<< "scale=2; $elapsed / 1000")
-            parsed_results="$parsed_results$label\t$response_time sec\t$result\n"
+            parsed_results="$parsed_results<tr><td>$label</td><td>${response_time} sec</td><td>$result</td></tr>"
           fi
         done < SLASresults.jtl
         # Remove trailing comma from failed_labels
         failed_labels="${failed_labels%,*}"
+        parsed_results="$parsed_results</table>"
 
         if [ "$overall_status" = "Successful" ]; then
           summary="All transactions met the response time SLA of 5 seconds, indicating optimal performance."
@@ -74,22 +75,24 @@ jobs:
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "Nelfund Real User Monitoring Health - #${{ env.run_number }} - ${{ env.run_date }} & ${{ env.run_time }} - Health Status - ${{ env.overall_status }}!"
         body: |
-          Please find the details of Application responsiveness:
+          <html>
+          <body style="font-family: Calibri, sans-serif;">
+            <p>Please find the details of Application responsiveness:</p>
+            <p>${{ env.parsed_results }}</p>
 
-          ${{ env.parsed_results }}
+            <p><b>Build Information:</b></p>
+            <p>Build Health Status: ${{ env.overall_status }}!</p>
+            <p>Build Date and Time: ${{ env.run_date }} & ${{ env.run_time }}</p>
+            
+            <p><b>Summary:</b></p>
+            <p>${{ env.summary }}</p>
 
-          Build Information:
+            <p>Thanks,<br>
+            QA Team.</p>
 
-          Build Health Status: ${{ env.overall_status }}!
-          Build Date and Time: ${{ env.run_date }} & ${{ env.run_time }}
-          
-          Summary:
-
-          ${{ env.summary }}
-
-          Thanks,
-          QA Team.
-
-          Note: This is an auto-generated email. Do not reply
+            <p>Note: This is an auto-generated email. Do not reply</p>
+          </body>
+          </html>
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
+        content_type: text/html
