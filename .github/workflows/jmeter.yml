@@ -79,11 +79,10 @@ jobs:
           <body style="font-family: Calibri, sans-serif;">
             <p>Please find the details of Application responsiveness:</p>
             <p>${{ env.parsed_results }}</p>
-
-            
+            <p></p> <!-- This adds space between the parsed results and build information -->
             <p><b>Build Information:</b></p>
-            <p>Build Health Status: ${{ env.overall_status }}!</p>
-            <p>Build Date and Time: ${{ env.run_date }} & ${{ env.run_time }}</p>
+            <p>Build Health Status: ${{ env.overall_status }}!<br>
+            Build Date and Time: ${{ env.run_date }} & ${{ env.run_time }}</p>
             
             <p><b>Summary:</b></p>
             <p>${{ env.summary }}</p>
