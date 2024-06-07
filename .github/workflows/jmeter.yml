@@ -36,7 +36,7 @@ jobs:
             parsed_results="$parsed_results$label\t$response_time sec\t$result\n"
           fi
         done < SLASresults.jtl
-        echo "::set-output name=parsed_results::$parsed_results"
+        echo "parsed_results=$parsed_results" >> $GITHUB_ENV
 
     - name: Send email with parsed results
       uses: dawidd6/action-send-mail@v3
@@ -49,6 +49,6 @@ jobs:
         body: |
           Please find the details of Application responsiveness:
 
-          ${{steps.parse-results.outputs.parsed_results}}
+          ${{ env.parsed_results }}
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
