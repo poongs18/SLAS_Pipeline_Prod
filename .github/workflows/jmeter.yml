@@ -46,7 +46,7 @@ jobs:
               overall_status="Failure"
               failed_labels="$failed_labels$label, "
             fi
-            response_time=$(bc <<< "scale=2; $elapsed / 1000")
+            response_time=$(printf "%.2f" $(bc <<< "scale=2; $elapsed / 1000")
             parsed_results="$parsed_results<tr><td style='border: 1px solid black; padding: 8px; text-align: left;'>$label</td><td style='border: 1px solid black; padding: 8px;'>${response_time} sec</td><td style='border: 1px solid black; padding: 8px;'>$result</td></tr>"
           fi
         done < SLASresults.jtl
