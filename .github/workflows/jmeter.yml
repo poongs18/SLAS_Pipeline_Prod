@@ -30,6 +30,6 @@ jobs:
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "JMeter Test Results"
         body: "Find the JMeter test results attached."
-        to: deepsthinktime@gmail.com
+        to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
         attachments: SLASresults.jtl
