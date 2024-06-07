@@ -45,6 +45,6 @@ jobs:
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "Nelfund Real User Monitoring Health - Status - Successful"
-        body: "Please find the details of Application responsiveness:\n${steps.parse-results.outputs.parsed_results}"
+        body: "Please find the details of Application responsiveness:\n${{steps.parse-results.outputs.parsed_results}}"
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
