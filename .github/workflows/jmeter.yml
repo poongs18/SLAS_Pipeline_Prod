@@ -12,7 +12,16 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-
+      
+    - name: Set run details
+      run: |
+        run_number=$(($GITHUB_RUN_NUMBER - 1)) # Subtract 1 as GITHUB_RUN_NUMBER starts from 1
+        run_date=$(date +'%Y-%m-%d')
+        run_time=$(TZ=Africa/Lagos date +'%I:%M %p, %Z') # Get Nigerian time
+        echo "run_number=$run_number" >> $GITHUB_ENV
+        echo "run_date=$run_date" >> $GITHUB_ENV
+        echo "run_time=$run_time" >> $GITHUB_ENV
+      
     - name: Run JMeter script in Docker
       run: |
         docker run --rm \
@@ -25,18 +34,21 @@ jobs:
       id: parse-results
       run: |
         parsed_results="PageName\tResponse Time\tStatus\n"
+        overall_status="Successful"
         while IFS=, read -r timeStamp elapsed label responseCode responseMessage threadName dataType success failureMessage bytes sentBytes grpThreads allThreads URL Latency IdleTime Connect; do
           if [ "$label" != "label" ]; then
             if [ $elapsed -le 5000 ]; then
               result="Pass"
             else
               result="Fail"
+              overall_status="Failure"
             fi
             response_time=$(bc <<< "scale=2; $elapsed / 1000")
             parsed_results="$parsed_results$label\t$response_time sec\t$result\n"
           fi
         done < SLASresults.jtl
         echo "parsed_results=$parsed_results" >> $GITHUB_ENV
+        echo "overall_status=$overall_status" >> $GITHUB_ENV
 
     - name: Send email with parsed results
       uses: dawidd6/action-send-mail@v3
@@ -45,7 +57,7 @@ jobs:
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "Nelfund Real User Monitoring Health - Status - Successful"
+        subject: "Nelfund Real User Monitoring Health - #${{ env.run_number }} - ${{ env.run_date }} & ${{ env.run_time }} - Health Status - ${{ env.overall_status }}!"
         body: |
           Please find the details of Application responsiveness:
 
