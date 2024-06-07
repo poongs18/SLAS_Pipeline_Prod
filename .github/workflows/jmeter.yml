@@ -33,7 +33,7 @@ jobs:
     - name: Parse JTL file and prepare email content
       id: parse-results
       run: |
-        parsed_results="<table><tr><th>PageName</th><th>Response Time</th><th>Status</th></tr>"
+        parsed_results="<table style='border-collapse: collapse; width: 100%;'><tr><th style='border: 1px solid black; padding: 8px;'>PageName</th><th style='border: 1px solid black; padding: 8px;'>Response Time</th><th style='border: 1px solid black; padding: 8px;'>Status</th></tr>"
         overall_status="Successful"
         failed_labels=""
         while IFS=, read -r timeStamp elapsed label responseCode responseMessage threadName dataType success failureMessage bytes sentBytes grpThreads allThreads URL Latency IdleTime Connect; do
@@ -46,7 +46,7 @@ jobs:
               failed_labels="$failed_labels$label, "
             fi
             response_time=$(bc <<< "scale=2; $elapsed / 1000")
-            parsed_results="$parsed_results<tr><td>$label</td><td>${response_time} sec</td><td>$result</td></tr>"
+            parsed_results="$parsed_results<tr><td style='border: 1px solid black; padding: 8px;'>$label</td><td style='border: 1px solid black; padding: 8px;'>${response_time} sec</td><td style='border: 1px solid black; padding: 8px;'>$result</td></tr>"
           fi
         done < SLASresults.jtl
         # Remove trailing comma from failed_labels
@@ -92,7 +92,4 @@ jobs:
 
             <p>Note: This is an auto-generated email. Do not reply</p>
           </body>
-          </html>
-        to: deepak@thinktime.in
-        from: ${{ secrets.EMAIL_USERNAME }}
-        priority: normal
+          </
