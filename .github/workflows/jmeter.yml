@@ -74,7 +74,7 @@ jobs:
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "Nelfund Real User Monitoring Health - #${{ env.run_number }} - ${{ env.run_date }} & ${{ env.run_time }} - Health Status - ${{ env.overall_status }}!"
-        body: |
+        html_body: |
           <html>
           <body style="font-family: Calibri, sans-serif;">
             <p>Please find the details of Application responsiveness:</p>
@@ -95,4 +95,4 @@ jobs:
           </html>
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
-        content_type: text/html
+        priority: normal
