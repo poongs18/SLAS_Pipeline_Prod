@@ -37,61 +37,16 @@ jobs:
                 if (( $(echo "$elapsed > 5.0" | bc -l) )); then
                     status="Fail"
                 fi
-                results+=("$label-$elapsed sec - $status")
+                results+=("<tr><td>$label</td><td>$elapsed sec</td><td>$status</td></tr>")
             done
             printf "%s\n" "${results[@]}"
         }
 
         results=$(parse_jtl_file "$jtl_content")
-        echo "$results" > results.txt
 
-        echo "::set-output name=results::$results"
+        table="<table border='1'><tr><th>PageName</th><th>Response Time</th><th>Status</th></tr>${results[@]}</table>"
 
-        results_array=(${results// / })
-        failed_transactions=()
-        for result in "${results_array[@]}"; do
-            if [[ "$result" == *"Fail"* ]]; then
-                failed_transactions+=("$result")
-            fi
-        done
-
-        if [ ${#failed_transactions[@]} -eq 0 ]; then
-            summary="All transactions met the response time SLA of 5 seconds, indicating optimal performance."
-        else
-            failed_labels=$(printf ", %s" "${failed_transactions[@]}")
-            failed_labels=${failed_labels:2}
-            summary="Please note that the following transactions failed to meet the performance criteria with a response time of 5 seconds: $failed_labels. Immediate action is required to address the performance issues identified."
-        fi
-
-        table_rows=""
-        for result in "${results_array[@]}"; do
-            IFS='-' read -r label elapsed status <<< "$result"
-            status_color="green"
-            if [[ "$status" == *"Fail"* ]]; then
-                status_color="red"
-            fi
-            table_rows+="<tr><td style=\"border: 1px solid black; text-align: left;\">$label</td><td style=\"border: 1px solid black;\">$elapsed sec</td><td style=\"border: 1px solid black; color: $status_color;\">$status</td></tr>"
-        done
-
-        email_table="<table style=\"text-align: left; border-collapse: collapse; border: 1px solid black; font-family: Calibri, sans-serif;\">
-                        <thead>
-                            <tr style=\"background-color: yellow; text-align: center;\">
-                                <th style=\"border: 1px solid black;\">PageName</th>
-                                <th style=\"border: 1px solid black;\">Response Time</th>
-                                <th style=\"border: 1px solid black;\">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            $table_rows
-                        </tbody>
-                    </table>
-                    <br>"
-
-        printf "%s" "$email_table" > email_table.txt
-        printf "%s" "$summary" > email_summary.txt
-
-        echo "::set-output name=email_table::$(cat email_table.txt)"
-        echo "::set-output name=email_summary::$(cat email_summary.txt)"
+        echo "::set-output name=table::$table"
 
     - name: Send email with results
       uses: dawidd6/action-send-mail@v3
@@ -102,17 +57,15 @@ jobs:
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "Nelfund Real User Monitoring Health"
         body: |
-          <p style="font-family: Calibri, sans-serif;">Please find the details of Application responsiveness :</p>
-          ${{ steps.generate-report.outputs.email_table }}
-          <p style="font-family: Calibri, sans-serif;"><b>Build Information:</b></p>
-          <ul style="font-family: Calibri, sans-serif;">
-              <li>Build Health Status: Successful!</li>
-              <li>Build Date and Time: $(date +"%Y-%m-%d & %I:%M %p, %Z")</li>
-          </ul>
-          <p style="font-family: Calibri, sans-serif;"><b>Summary:</b></p>
-          <p style="font-family: Calibri, sans-serif;">${{ steps.generate-report.outputs.email_summary }}</p>
-          <p style="font-family: Calibri, sans-serif;">Thanks,<br>QA Team.</p>
-          <p style="font-family: Calibri, sans-serif;">Note: This is an auto-generated email. Do not reply.</p>
+          <p>Please find the details of Application responsiveness :</p>
+          ${{ steps.generate-report.outputs.table }}
+          <p><b>Build Information:</b></p>
+          <p>Build Health Status: Successful!</p>
+          <p>Build Date and Time: $(date +"%Y-%m-%d & %I:%M %p, %Z")</p>
+          <p><b>Summary:</b></p>
+          <p>All transactions met the response time SLA of 5 seconds, indicating optimal performance.</p>
+          <p>Thanks,<br>QA Team.</p>
+          <p>Note: This is an auto-generated email. Do not reply.</p>
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
         attachments: SLASresults.jtl
