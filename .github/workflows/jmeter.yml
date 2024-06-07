@@ -24,7 +24,7 @@ jobs:
     - name: Parse JTL file and prepare email content
       id: parse-results
       run: |
-        parsed_results=""
+        parsed_results="PageName\tResponse Time\tStatus\n"
         while IFS=, read -r timeStamp elapsed label responseCode responseMessage threadName dataType success failureMessage bytes sentBytes grpThreads allThreads URL Latency IdleTime Connect; do
           if [ "$label" != "label" ]; then
             if [ $elapsed -le 5000 ]; then
@@ -32,7 +32,8 @@ jobs:
             else
               result="Fail"
             fi
-            parsed_results="$parsed_results $label - Elapsed: $elapsed ms - Result: $result\n"
+            response_time=$(bc <<< "scale=2; $elapsed / 1000")
+            parsed_results="$parsed_results$label\t$response_time sec\t$result\n"
           fi
         done < SLASresults.jtl
         echo "::set-output name=parsed_results::$parsed_results"
@@ -45,6 +46,9 @@ jobs:
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
         subject: "Nelfund Real User Monitoring Health - Status - Successful"
-        body: "Please find the details of Application responsiveness:\n${{steps.parse-results.outputs.parsed_results}}"
+        body: |
+          Please find the details of Application responsiveness:
+
+          ${{steps.parse-results.outputs.parsed_results}}
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
