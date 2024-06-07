@@ -21,33 +21,6 @@ jobs:
           justb4/jmeter \
           -n -t SLAS_Pipeline_prod.jmx -l SLASresults.jtl
 
-    - name: Generate Report
-      id: generate-report
-      run: |
-        jtl_content=$(cat SLASresults.jtl)
-
-        parse_jtl_file() {
-            IFS=$'\n' read -d '' -r -a lines <<< "$1"
-            results=()
-            for line in "${lines[@]}"; do
-                IFS=',' read -r -a parts <<< "$line"
-                label="${parts[2]}"
-                elapsed=$(echo "scale=2; ${parts[1]}/1000" | bc)
-                status="Pass"
-                if (( $(echo "$elapsed > 5.0" | bc -l) )); then
-                    status="Fail"
-                fi
-                results+=("<tr><td>$label</td><td>$elapsed sec</td><td>$status</td></tr>")
-            done
-            printf "%s\n" "${results[@]}"
-        }
-
-        results=$(parse_jtl_file "$jtl_content")
-
-        table="<table border='1'><tr><th>PageName</th><th>Response Time</th><th>Status</th></tr>${results[@]}</table>"
-
-        echo "::set-output name=table::$table"
-
     - name: Send email with results
       uses: dawidd6/action-send-mail@v3
       with:
@@ -55,18 +28,8 @@ jobs:
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "Nelfund Real User Monitoring Health"
-        body: |
-          Please find the details of Application responsiveness :
-          ${{ steps.generate-report.outputs.table }}
-          Build Information:
-          Build Health Status: Successful!
-          Build Date and Time:
-          Summary:
-          All transactions met the response time SLA of 5 seconds, indicating optimal performance.
-          Thanks,
-          QA Team.
-          Note: This is an auto-generated email. Do not reply.
+        subject: "JMeter Test Results"
+        body: "Find the JMeter test results attached."
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
         attachments: SLASresults.jtl
