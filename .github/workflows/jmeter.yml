@@ -35,7 +35,7 @@ jobs:
                 elapsed=$(echo "scale=2; ${parts[1]}/1000" | bc)
                 status="Pass"
                 if (( $(echo "$elapsed > 5.0" | bc -l) )); then
-                    status="Fail(Response Time SLA breached)"
+                    status="Fail"
                 fi
                 results+=("$label-$elapsed sec - $status")
             done
@@ -94,6 +94,9 @@ jobs:
         # Use the GITHUB_ENV file to set environment variables
         echo "EMAIL_TABLE=$(cat email_table.txt)" >> $GITHUB_ENV
         echo "EMAIL_SUMMARY=$(cat email_summary.txt)" >> $GITHUB_ENV
+
+    - name: Set results environment variable
+      run: echo "results=$(cat results.txt | tr '\n' ' ')" >> $GITHUB_ENV
 
     - name: Send email with results
       uses: dawidd6/action-send-mail@v3
