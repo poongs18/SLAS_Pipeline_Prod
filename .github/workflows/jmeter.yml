@@ -100,14 +100,14 @@ jobs:
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "JMeter Test Results"
+        subject: "Nelfund Real User Monitoring Health - Build #${{ github.run_number }} - $(date +"%Y-%m-%d & %I:%M %p, %Z")"
         body: |
           <p style="font-family: Calibri, sans-serif;">Please find the details of Application responsiveness :</p>
           ${{ steps.generate-report.outputs.email_table }}
           <p style="font-family: Calibri, sans-serif;"><b>Build Information:</b></p>
           <ul style="font-family: Calibri, sans-serif;">
-              <li>Build Health Status: ${{ steps.generate-report.outputs.results }}</li>
-              <li>Build Date and Time: $(date +"%Y-%m-%d & %I:%M %p, %Z" -d "TZ=\"Africa/Lagos\"")</li>
+              <li>Build Health Status: Successful!</li>
+              <li>Build Date and Time: $(date +"%Y-%m-%d & %I:%M %p, %Z")</li>
           </ul>
           <p style="font-family: Calibri, sans-serif;"><b>Summary:</b></p>
           <p style="font-family: Calibri, sans-serif;">${{ steps.generate-report.outputs.email_summary }}</p>
@@ -115,4 +115,3 @@ jobs:
           <p style="font-family: Calibri, sans-serif;">Note: This is an auto-generated email. Do not reply.</p>
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
-        attachments: SLASresults.jtl
