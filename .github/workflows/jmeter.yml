@@ -1,0 +1,35 @@
+name: Run JMeter Script and Send Results
+
+on:
+  schedule:
+    - cron: '30 13 * * *'  # Runs daily at 1:30 PM UTC
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  run-jmeter:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Run JMeter script in Docker
+      run: |
+        docker run --rm \
+          -v ${{ github.workspace }}:/jmeter \
+          -w /jmeter \
+          justb4/jmeter \
+          -n -t your-SLAS_Pipeline_prod.jmx -l SLASresults.jtl
+
+    - name: Send email with results
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.hostinger.com  # replace with your SMTP server
+        server_port: 465
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "JMeter Test Results"
+        body: "Find the JMeter test results attached."
+        to: deepsthinktime@gmail.com
+        from: ${{ secrets.EMAIL_USERNAME }}
+        attachments: SLASresults.jtl
