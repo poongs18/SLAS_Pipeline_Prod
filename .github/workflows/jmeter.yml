@@ -100,7 +100,7 @@ jobs:
         server_port: 465
         username: ${{ secrets.EMAIL_USERNAME }}
         password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "Nelfund Real User Monitoring Health - $(date +"%Y-%m-%d & %I:%M %p, %Z")"
+        subject: "Nelfund Real User Monitoring Health"
         body: |
           <p style="font-family: Calibri, sans-serif;">Please find the details of Application responsiveness :</p>
           ${{ steps.generate-report.outputs.email_table }}
