@@ -33,20 +33,20 @@ jobs:
     - name: Parse JTL file and prepare email content
       id: parse-results
       run: |
-        parsed_results="<table style='border-collapse: collapse; width: 100%;'><tr><th style='border: 1px solid black; padding: 8px;'>PageName</th><th style='border: 1px solid black; padding: 8px;'>Response Time</th><th style='border: 1px solid black; padding: 8px;'>Status</th></tr>"
+        parsed_results="<table style='border-collapse: collapse; width: 100%; text-align: center;'><tr><th style='border: 1px solid black; padding: 8px; text-align: left;'>PageName</th><th style='border: 1px solid black; padding: 8px;'>Response Time</th><th style='border: 1px solid black; padding: 8px;'>Status</th></tr>"
         overall_status="Successful"
         failed_labels=""
         while IFS=, read -r timeStamp elapsed label responseCode responseMessage threadName dataType success failureMessage bytes sentBytes grpThreads allThreads URL Latency IdleTime Connect; do
           if [ "$label" != "label" ]; then
             if [ $elapsed -le 5000 ]; then
-              result="Pass"
+              result="<span style='color: green;'>Pass</span>"
             else
-              result="Fail"
+              result="<span style='color: red;'>Fail</span>"
               overall_status="Failure"
               failed_labels="$failed_labels$label, "
             fi
             response_time=$(bc <<< "scale=2; $elapsed / 1000")
-            parsed_results="$parsed_results<tr><td style='border: 1px solid black; padding: 8px;'>$label</td><td style='border: 1px solid black; padding: 8px;'>${response_time} sec</td><td style='border: 1px solid black; padding: 8px;'>$result</td></tr>"
+            parsed_results="$parsed_results<tr><td style='border: 1px solid black; padding: 8px; text-align: left;'>$label</td><td style='border: 1px solid black; padding: 8px;'>${response_time} sec</td><td style='border: 1px solid black; padding: 8px;'>$result</td></tr>"
           fi
         done < SLASresults.jtl
         # Remove trailing comma from failed_labels
