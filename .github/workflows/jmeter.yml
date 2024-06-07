@@ -115,3 +115,4 @@ jobs:
           <p style="font-family: Calibri, sans-serif;">Note: This is an auto-generated email. Do not reply.</p>
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
+        attachments: SLASresults.jtl
