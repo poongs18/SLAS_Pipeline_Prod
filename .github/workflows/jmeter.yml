@@ -62,5 +62,19 @@ jobs:
           Please find the details of Application responsiveness:
 
           ${{ env.parsed_results }}
+
+          Build Information:
+
+          Build Health Status: ${{ env.overall_status }}!
+          Build Date and Time: ${{ env.run_date }} & ${{ env.run_time }}
+          
+          Summary:
+
+          
+
+          Thanks,
+          QA Team.
+
+          Note: This is an auto-generated email. Do not reply
         to: deepak@thinktime.in
         from: ${{ secrets.EMAIL_USERNAME }}
