@@ -3,6 +3,8 @@ name: Run JMeter Script and Send Results
 on:
   push:
     branches: [ "master" ]
+  schedule:
+    - cron: '45 4 * * *'  # Runs at 5:45 AM Nigerian time (UTC+1)
 
 jobs:
   run-jmeter:
