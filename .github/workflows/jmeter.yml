@@ -2,8 +2,8 @@ name: Run JMeter Script and Send Results
 
 on:
   push:
-    branches: [ "master" ]
-
+    branches: [ "master" ]
+    
 jobs:
   run-jmeter:
     runs-on: ubuntu-latest
